@@ -13,19 +13,34 @@ type  ITunesSearchResult record {
 
 };
 
+type Album record {|
+
+string name;
+string url;
+
+|};
+
 
 service /pickagift on new http:Listener(8080) {
 
-    resource function get albums(string trackName) returns string|error? {
+   
+    resource function get albums(string artistName) returns Album[]|error? {
 
     http:Client iTunes =  check new ("https://itunes.apple.com");
    
-    ITunesSearchResult search = check iTunes->get("/search?term=jack+johnson&entity=musicVideo");
+    ITunesSearchResult search = check iTunes->get(searchUrl(artistName));
    
-    return (search.results[0].trackName);
+    return from ITunesSearchItem i in search.results
+
+    select {name: i.trackName, url: i.trackViewUrl};
         
     }
     
+}
+
+function searchUrl(string artistName ) returns  string{
+
+   return "/search?term="+artistName+"&entity=musicVideo" ;
 }
 
 
